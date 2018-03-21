@@ -1,0 +1,2 @@
+Python3 based whatsapp-bot. It's compare every five seconds two images to check the changes on the incomming messages zone. If changes, the bot reads the message code and search coincidence in the json file. If there's a coincidence, the bot write a response in the textbox with data and send images.
+

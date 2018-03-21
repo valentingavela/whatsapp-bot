@@ -1,4 +1,5 @@
 #!/usr/bin/python3
+
 import json
 import mimetypes
 import os
@@ -15,7 +16,7 @@ from datetime import datetime
 import subprocess
 import random
 
-os.chdir('/home/cliff/Desktop/WASAPBOT')
+os.chdir('/home/cliff/Desktop/whatsapp-bot')
 
 DBG = 1
 loc = 3
@@ -166,11 +167,23 @@ def escribirrespuesta(msj):
             copypaste(':')
         elif letra == '/':
             copypaste('/')
+        elif letra == '¿':
+            copypaste('¿')
+        elif letra == '?':
+            copypaste('?')
         else:
             pyautogui.typewrite(letra)
         #time.sleep(0.05)
     pyautogui.press('enter')
 
+
+def generarrespuesta(data_prop):
+    rta = "Hola! Gracias por contactarte. En breve te enviamos los datos. \n"
+    rta += data_prop
+    return rta
+
+def generarfooter():
+    return "\n ¿Te interesa otra propiedad? Pasanos el código."
 
 ###########################################################
 
@@ -287,11 +300,6 @@ def chkresframe(pos):
     if DBG: print('Fn: chkresframe')
     pyautogui.click(pos)  # Voy a la posicion 1 y clickeo
 
-def generarrespuesta(data_prop):
-    rta = "Hola! Gracias por contactarte. En breve te enviamos los datos. \n"
-    rta += data_prop
-    return rta
-
 
 ###########################################################
 
@@ -324,6 +332,7 @@ def run(force):
                             copiarimg(posImg0)
                             clearimg(imageFolder)
                         time.sleep(4)
+                        escribirrespuesta(generarfooter())
                         if tel == leernum(posMsj1, regionTelSup):
                             archivarchat()
 

@@ -182,8 +182,22 @@ def generarrespuesta(data_prop):
     rta += data_prop
     return rta
 
-def generarfooter():
-    return "\n ¿Te interesa otra propiedad? Pasanos el código."
+
+def generarfooter(data, texto):
+    print("Generando Footer")
+    prod_nom = ""
+    prod_tel = ""
+
+    for i in data['schedule']:
+        codigo = i["Cod"]
+        if codigo in texto:
+            prod_nom = i['prod_nom']
+            prod_tel = i['prod_tel']
+
+    return "Si te interesa esta propiedad comunicate con %s tel:%s " \
+           "  \n ¿Te interesa otra propiedad? Pasanos el código." \
+           % (prod_nom, prod_tel)
+
 
 ###########################################################
 
@@ -332,7 +346,7 @@ def run(force):
                             copiarimg(posImg0)
                             clearimg(imageFolder)
                         time.sleep(4)
-                        escribirrespuesta(generarfooter())
+                        escribirrespuesta(generarfooter(data, texto))
                         if tel == leernum(posMsj1, regionTelSup):
                             archivarchat()
 

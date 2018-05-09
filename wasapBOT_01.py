@@ -11,12 +11,13 @@ import pyscreenshot
 import pytesseract
 import requests
 import difflib
+
 from PIL import ImageChops
 from datetime import datetime
 import subprocess
 import random
 
-os.chdir('/home/cliff/Desktop/whatsapp-bot')
+os.chdir('/home/wasap/whatsapp-bot')
 
 DBG = 1
 loc = 3

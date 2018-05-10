@@ -27,7 +27,7 @@ loc = 3
 ##########
 pyautogui.FAILSAFE = True
 urlimg = 'http://www.benteveo.com/siguit-inmo/images/'
-imageFolder = "/home/cliff/Pictures/"
+imageFolder = "/home/wasap/whatsapp-bot/media/"
 
 # COORDENADAS WASAP:
 regionTelSup = (1117, 91, 1308, 125)  # El num de telefono que aparece arriba
@@ -355,9 +355,35 @@ def run(force):
 ###########################################################
 
 
-def test():
-    pass
-    # IAP21081
+# def test(force):
+#     # TODO corregir el tema de que cuando es cada 5 minutos busca a cada rato
+#     if nuevosmensajes(regionMessages) or force:
+#         print("Nuevo Mensaje")
+#         checkspam(posMsj1, posBntNoEsSpam, regNewContact)
+#         tel = leernum(posMsj1, regionTelSup)  # Leo el numero de telefono
+#         print("tel" + tel)
+#         chkresframe(posResFrame)
+#         if tel:
+#             print("TEL: " + tel)
+#             texto = leermsj(posNewText, regionNewText)  # Obtengo el propid del mensaje del remitente
+#             if DBG == 1: print("TEXTO: " + texto)
+#             if len(texto) > 3:
+#                 sync(loc)
+#                 data = obtenerpropiedades()
+#                 if data:
+#                     data_prop = buscarporpropid(data, texto)
+#                     if data_prop:
+#                         print(data_prop)
+#                         respuesta = generarrespuesta(data_prop)
+#                         escribirrespuesta(respuesta)
+#                         if propimg(data, texto, imageFolder):
+#                             print("Copiando Fotos")
+#                             copiarimg(posImg0)
+#                             clearimg(imageFolder)
+#                         time.sleep(4)
+#                         escribirrespuesta(generarfooter(data, texto))
+#         #                 if tel == leernum(posMsj1, regionTelSup):
+#         #                     archivarchat()
 
 
 ###########################################################
@@ -373,4 +399,6 @@ if __name__ == "__main__":
         else:
             force = 0
         run(force)
+        # test(force)
+
     #     time.sleep(0.5)

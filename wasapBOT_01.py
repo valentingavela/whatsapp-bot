@@ -178,9 +178,20 @@ def escribirrespuesta(msj):
     pyautogui.press('enter')
 
 
-def generarrespuesta(data_prop):
-    rta = "Hola! Gracias por contactarte. En breve te enviamos los datos. \n"
-    rta += data_prop
+def copypaste(m):
+    if DBG: print('F: Copypaste')
+    pyperclip.copy(m)
+    time.sleep(0.2)
+    pyautogui.hotkey('ctrl', 'v')
+
+
+def generarrespuesta(codigo):
+    rta = "Hola! Gracias por contactarte. En breve te enviamos los datos de la propiedad con el código " + codigo + "."
+    return rta
+
+
+def generarrespuesta1(data_prop, codigo):
+    rta = data_prop
     return rta
 
 
@@ -195,22 +206,6 @@ def generarfooter(data, texto):
             prod_nom = i['prod_nom']
             prod_tel = i['prod_tel']
 
-    return "Si te interesa esta propiedad comunicate con %s tel:%s " \
-           "  \n ¿Te interesa otra propiedad? Pasanos el código." \
-           % (prod_nom, prod_tel)
-
-
-###########################################################
-
-
-def copypaste(m):
-    if DBG: print('F: Copypaste')
-    pyperclip.copy(m)
-    time.sleep(0.2)
-    pyautogui.hotkey('ctrl', 'v')
-
-
-###########################################################
 
 
 def sync(loc):
@@ -241,6 +236,13 @@ def obtenerpropiedades():
 
 
 ###########################################################
+def obtenerId(data, texto):
+    print("Obteniendo ID")
+    texto = texto.upper()
+    for i in data['schedule']:
+        codigo = i['Cod']
+        if codigo in texto:
+            return codigo
 
 
 def buscarporpropid(data, texto):
@@ -255,9 +257,9 @@ def buscarporpropid(data, texto):
         if codigo in texto:
             # if propid == i["reference_code"]:
             print("Prop Encontrada")
-            b = "CODIGO: " + codigo + "\n"
+            b = str(i["TipodeOperacion"]) + "\n"
             b += str(i["Descripcion"]) + "\n"
-            b += "Direccion " + i["Direccion"] + "\n"
+            b += "Dirección " + i["Direccion"] + "\n"
             b += "Precio " + str(i["Precio"]) + "\n"
 
             break
@@ -319,9 +321,6 @@ def chkresframe(pos):
 ###########################################################
 
 
-
-
-
 def run(force):
     # TODO corregir el tema de que cuando es cada 5 minutos busca a cada rato
     if nuevosmensajes(regionMessages) or force:
@@ -337,10 +336,13 @@ def run(force):
                 sync(loc)
                 data = obtenerpropiedades()
                 if data:
+                    codigo = obtenerId(data, texto)
                     data_prop = buscarporpropid(data, texto)
                     if data_prop:
                         print(data_prop)
-                        respuesta = generarrespuesta(data_prop)
+                        respuesta = generarrespuesta(codigo)
+                        escribirrespuesta(respuesta)
+                        respuesta = generarrespuesta1(data_prop, codigo)
                         escribirrespuesta(respuesta)
                         if propimg(data, texto, imageFolder):
                             print("Copiando Fotos")
@@ -388,17 +390,22 @@ def run(force):
 
 ###########################################################
 
+#
+# if __name__ == "__main__":
+#     lminute = 0
+#     while 1:
+#         minutes = int(datetime.now().strftime('%M'))
+#         if minutes % 5 == 0 and minutes != lminute:
+#             force = 1
+#             lminute = minutes
+#         else:
+#             force = 1
+#         run(force)
+#         # test(force)
+#
+#     #     time.sleep(0.5)
 
 if __name__ == "__main__":
-    lminute = 0
+    force = 1
     while 1:
-        minutes = int(datetime.now().strftime('%M'))
-        if minutes % 5 == 0 and minutes != lminute:
-            force = 1
-            lminute = minutes
-        else:
-            force = 0
         run(force)
-        # test(force)
-
-    #     time.sleep(0.5)

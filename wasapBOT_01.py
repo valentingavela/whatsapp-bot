@@ -1,5 +1,5 @@
 #!/usr/bin/python3
-
+import mysql.connector
 import json
 import mimetypes
 import os
@@ -11,6 +11,9 @@ import pyscreenshot
 import pytesseract
 import requests
 import difflib
+from selenium import webdriver
+from selenium.webdriver.common.keys import Keys
+from selenium.webdriver.common.by import By
 
 from PIL import ImageChops
 from datetime import datetime
@@ -18,7 +21,7 @@ import subprocess
 import random
 
 os.chdir('/home/wasap/whatsapp-bot')
-
+driver = None
 DBG = 1
 loc = 3
 
@@ -47,6 +50,87 @@ posImg0 = (262, 113)  # Primer imagen en el filemanager
 posTextBox = (1400, 400)  # caja donde se encuentra la conversacion
 
 scrolling = (-2.1)
+
+
+###########################################################
+
+
+def start():
+    global driver
+    driver = webdriver.Chrome("/home/wasap/whatsapp-bot/chromedriver")
+    driver.get("https://web.whatsapp.com/")
+    answer = input('Is the phone connected successfully? (y/Y) -> ')
+
+    if str(answer).strip().lower() == 'y':
+        print("starting")
+    else:
+        print('Bye')
+        exit(0)
+
+
+###########################################################
+
+
+def collect_data():
+    # Todo: debuugear por que  message ingresa en blanco
+    elements = driver.find_elements_by_tag_name("div")
+    text = elements[0].text
+    text = text.splitlines()
+
+    telephone = ''
+    msg_hour = ''
+    message = ''
+    message_bar = ''
+    telephones = []
+    base_data = []
+    # dic = {}
+
+    # Busqueda de elementos
+    for i in range(len(text)):
+        line = text[i]
+        if line[:1] == '+':
+            telephone = line
+            telephones.append(telephone)
+        elif line[2:3] == ':':
+            msg_hour = line
+        elif line == 'Sea notificado de mensajes nuevos'\
+            or line == 'Activar notificaciones de escritorio' \
+            or line.partition(' ')[0] == "Videollamada" \
+            or line == 'Buscar o empezar un chat nuevo' \
+            or line == 'Escribe un mensaje aquí'\
+                or line == '':
+            line = ''
+        else:
+            message = line
+            # print(f"telephone: {telephone} hour: {msg_hour} message: {line}")
+
+        if (telephone and msg_hour and line) != '':
+            base_data.append({"telephone": telephone, "hour": msg_hour, "message": message})
+
+    return base_data
+
+
+###########################################################
+
+
+def find_contact(user_name):
+    searchbar = driver.find_elements_by_tag_name("input")
+    if(searchbar):
+        searchbar[0].click()
+        time.sleep(0.2)
+        searchbar[0].send_keys(user_name)
+        time.sleep(0.2)
+        searchbar[0].send_keys(Keys.ENTER)
+
+
+###########################################################
+
+
+def write_message(message):
+    message_bar = driver.find_element_by_xpath("//div[@spellcheck]")
+    message_bar.click()
+    time.sleep(0.1)
+    message_bar.send_keys(message)
 
 
 ###########################################################
@@ -357,55 +441,16 @@ def run(force):
 ###########################################################
 
 
-# def test(force):
-#     # TODO corregir el tema de que cuando es cada 5 minutos busca a cada rato
-#     if nuevosmensajes(regionMessages) or force:
-#         print("Nuevo Mensaje")
-#         checkspam(posMsj1, posBntNoEsSpam, regNewContact)
-#         tel = leernum(posMsj1, regionTelSup)  # Leo el numero de telefono
-#         print("tel" + tel)
-#         chkresframe(posResFrame)
-#         if tel:
-#             print("TEL: " + tel)
-#             texto = leermsj(posNewText, regionNewText)  # Obtengo el propid del mensaje del remitente
-#             if DBG == 1: print("TEXTO: " + texto)
-#             if len(texto) > 3:
-#                 sync(loc)
-#                 data = obtenerpropiedades()
-#                 if data:
-#                     data_prop = buscarporpropid(data, texto)
-#                     if data_prop:
-#                         print(data_prop)
-#                         respuesta = generarrespuesta(data_prop)
-#                         escribirrespuesta(respuesta)
-#                         if propimg(data, texto, imageFolder):
-#                             print("Copiando Fotos")
-#                             copiarimg(posImg0)
-#                             clearimg(imageFolder)
-#                         time.sleep(4)
-#                         escribirrespuesta(generarfooter(data, texto))
-#         #                 if tel == leernum(posMsj1, regionTelSup):
-#         #                     archivarchat()
+def test():
+    start()
+    data = collect_data()
+    find_contact(data[0]['telephone'])
+    write_message("hola mono")
 
 
-###########################################################
-
-#
-# if __name__ == "__main__":
-#     lminute = 0
-#     while 1:
-#         minutes = int(datetime.now().strftime('%M'))
-#         if minutes % 5 == 0 and minutes != lminute:
-#             force = 1
-#             lminute = minutes
-#         else:
-#             force = 1
-#         run(force)
-#         # test(force)
-#
-#     #     time.sleep(0.5)
 
 if __name__ == "__main__":
-    force = 1
-    while 1:
-        run(force)
+    test()
+    # force = 1
+    # while 1:
+    #     run(force)

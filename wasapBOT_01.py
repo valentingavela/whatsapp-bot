@@ -227,7 +227,7 @@ def clearimg(dirpath):
 ###########################################################
 
 
-def escribirrespuesta(msj):
+def escribir(msj):
     print("Escribiendo rta")
     print(msj)
     # pyautogui.click(posTextFrame)
@@ -284,12 +284,19 @@ def generarfooter(data, texto):
     prod_nom = ""
     prod_tel = ""
 
+    footer = ""
     for i in data['schedule']:
         codigo = i["Cod"]
         if codigo in texto:
             prod_nom = i['prod_nom']
             prod_tel = i['prod_tel']
 
+    if prod_nom != "" :
+        footer += f"Si te interesa esta propiedad comunicate con {prod_nom} tel: {prod_tel} \n"
+
+    footer += "¿Te interesa otra propiedad? Pasanos el código"
+
+    return footer
 
 
 def sync(loc):
@@ -425,15 +432,17 @@ def run(force):
                     if data_prop:
                         print(data_prop)
                         respuesta = generarrespuesta(codigo)
-                        escribirrespuesta(respuesta)
+                        escribir(respuesta)
                         respuesta = generarrespuesta1(data_prop, codigo)
-                        escribirrespuesta(respuesta)
+                        escribir(respuesta)
                         if propimg(data, texto, imageFolder):
                             print("Copiando Fotos")
                             copiarimg(posImg0)
                             clearimg(imageFolder)
                         time.sleep(4)
-                        escribirrespuesta(generarfooter(data, texto))
+                        textoprod = generarfooter(data, texto)
+                        if textoprod:
+                            escribir(textoprod)
                         if tel == leernum(posMsj1, regionTelSup):
                             archivarchat()
 
@@ -450,7 +459,7 @@ def test():
 
 
 if __name__ == "__main__":
-    test()
-    # force = 1
-    # while 1:
-    #     run(force)
+    # test()
+    force = 1
+    while 1:
+        run(force)

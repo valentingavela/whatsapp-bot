@@ -33,21 +33,21 @@ urlimg = 'http://www.benteveo.com/siguit-inmo/images/'
 imageFolder = "/home/wasap/whatsapp-bot/media/"
 
 # COORDENADAS WASAP:
-regionTelSup = (1117, 91, 1308, 125)  # El num de telefono que aparece arriba
-posMsj1 = (854, 392)  # posicion del mensaje nuevo a la izquierda
-posNewText = (1077, 652)  # El ultimo texto que manda el usuario en la zona de conversacion
-regionNewText = (1039, 633, 1547, 679)  # Region donde aparece el ultimo texto
-regionMessages = (660, 361, 1020, 712)  # zona donde estan todos los mensajes recibidos
-regNewContact = (1242, 628, 1385, 660)  # Boton "NO ES SPAM" del cartel de spam
-posBntNoEsSpam = (1321, 646)  # Posicion del boton de "NO ES SPAM"
-regResFrame = (1527, 636, 1580, 677)  # Region donde aparece la X para cerrar un cuadro de respuesta
-posResFrame = (1556, 656)
+region_tel_sup = (1117, 91, 1308, 125)  # El num de telefono que aparece arriba
+pos_msj1 = (854, 392)  # posicion del mensaje nuevo a la izquierda
+pos_new_text = (1077, 652)  # El ultimo texto que manda el usuario en la zona de conversacion
+region_new_text = (1039, 633, 1547, 679)  # Region donde aparece el ultimo texto
+region_messages = (660, 361, 1020, 712)  # zona donde estan todos los mensajes recibidos
+reg_new_contact = (1242, 628, 1385, 660)  # Boton "NO ES SPAM" del cartel de spam
+pos_bnt_no_es_spam = (1321, 646)  # Posicion del boton de "NO ES SPAM"
+reg_res_frame = (1527, 636, 1580, 677)  # Region donde aparece la X para cerrar un cuadro de respuesta
+pos_res_frame = (1556, 656)
 
 
 # COORDENADAS FILE MANAGER
-posFolder = (262, 113)  # filemanager
-posImg0 = (262, 113)  # Primer imagen en el filemanager
-posTextBox = (1400, 400)  # caja donde se encuentra la conversacion
+pos_folder = (262, 113)  # filemanager
+pos_img0 = (262, 113)  # Primer imagen en el filemanager
+pos_text_box = (1400, 400)  # caja donde se encuentra la conversacion
 
 scrolling = (-2.1)
 
@@ -101,7 +101,7 @@ def guardar(tel):
 ###########################################################
 
 
-def guardarfoto(url, path):
+def download_photos(url, path):
     print("guardando fotos")
     response = requests.get(url)
     content_type = response.headers['content-type']
@@ -128,7 +128,7 @@ def copiarimg(regImg):
     ctrla()
     # Arrastro las imagenes
     pyautogui.moveTo(regImg, duration=1)
-    pyautogui.dragTo(posTextBox[0], posTextBox[1], 2, button='left')
+    pyautogui.dragTo(pos_text_box[0], pos_text_box[1], 2, button='left')
     time.sleep(8)
     pyautogui.press('enter')
 
@@ -149,7 +149,7 @@ def write_with_keyboard(msj):
     print("Escribiendo rta")
     print(msj)
     # pyautogui.click(posTextFrame)
-    pyautogui.click(posMsj1)
+    pyautogui.click(pos_msj1)
     time.sleep(0.4)
     for letra in msj:
         if letra == 'ñ':
@@ -186,33 +186,6 @@ def copypaste(m):
     time.sleep(0.2)
     pyautogui.hotkey('ctrl', 'v')
 
-
-
-
-
-def generarrespuesta1(data_prop, codigo):
-    rta = data_prop
-    return rta
-
-
-def generarfooter(data, texto):
-    print("Generando Footer")
-    prod_nom = ""
-    prod_tel = ""
-
-    footer = ""
-    for i in data['schedule']:
-        codigo = i["Cod"]
-        if codigo in texto:
-            prod_nom = i['prod_nom']
-            prod_tel = i['prod_tel']
-
-    if prod_nom != "" :
-        footer += f"Si te interesa esta propiedad comunicate con {prod_nom} tel: {prod_tel} \n"
-
-    footer += "¿Te interesa otra propiedad? Pasanos el código"
-
-    return footer
 
 
 def sync(loc):
@@ -278,6 +251,10 @@ def get_property_data(data, texto):
             price = i["Precio"]
             prod_nom = i['prod_nom']
             prod_tel = i['prod_tel']
+
+            for image in i['images']:
+                image_url = image['url']
+                download_photos(urlimg + fotourl, fotodir + str(p))
             break
 
     return {"code" : code, "operation type" : operation_type,
@@ -302,18 +279,17 @@ def generate_response(prop_data):
 
 
 
-def propimg(data, texto, fotodir):
+def get_property_images(data, texto, fotodir):
     p = 0
     print("tomando data de fotos")
     for i in data['schedule']:
         codigo = i["Cod"]
         if codigo in texto:
-            for entry in i['images']:
+            for image in i['images']:
                 p += 1
-                # fotourl = i['photos'][p]['image']
-                fotourl = entry['url']
+                fotourl = image['url']
                 print(fotourl)
-                guardarfoto(urlimg + fotourl, fotodir + str(p))
+                download_photos(urlimg + fotourl, fotodir + str(p))
             break
     return p
 
@@ -322,7 +298,7 @@ def propimg(data, texto, fotodir):
 
 
 def archivarchat():
-    pyautogui.click(posMsj1, button='right')
+    pyautogui.click(pos_msj1, button='right')
     time.sleep(0.3)
     pyautogui.moveRel(100, 40)
     pyautogui.click()
@@ -352,14 +328,14 @@ def chkresframe(pos):
 
 def run(force):
     # TODO corregir el tema de que cuando es cada 5 minutos busca a cada rato
-    if nuevosmensajes(regionMessages) or force:
+    if nuevosmensajes(region_messages) or force:
         print("Nuevo Mensaje")
-        checkspam(posMsj1, posBntNoEsSpam, regNewContact)
-        tel = leernum(posMsj1, regionTelSup)  # Leo el numero de telefono
-        chkresframe(posResFrame)
+        checkspam(pos_msj1, pos_bnt_no_es_spam, reg_new_contact)
+        tel = leernum(pos_msj1, region_tel_sup)  # Leo el numero de telefono
+        chkresframe(pos_res_frame)
         if tel:
             print("TEL: " + tel)
-            texto = leermsj(posNewText, regionNewText)  # Obtengo el propid del mensaje del remitente
+            texto = leermsj(pos_new_text, region_new_text)  # Obtengo el propid del mensaje del remitente
             if DBG == 1: print("TEXTO: " + texto)
             if len(texto) > 3:
                 sync(loc)
@@ -373,19 +349,18 @@ def run(force):
                         write_with_keyboard(respuesta)
                         respuesta = generarrespuesta1(data_prop, codigo)
                         write_with_keyboard(respuesta)
-                        if propimg(data, texto, imageFolder):
+                        if get_property_images(data, texto, imageFolder):
                             print("Copiando Fotos")
-                            copiarimg(posImg0)
+                            copiarimg(pos_img0)
                             clearimg(imageFolder)
                         time.sleep(4)
                         textoprod = generarfooter(data, texto)
                         if textoprod:
                             write_with_keyboard(textoprod)
-                        if tel == leernum(posMsj1, regionTelSup):
+                        if tel == leernum(pos_msj1, region_tel_sup):
                             archivarchat()
 
 
-###########################################################
 ###########################################################
 
 
@@ -417,7 +392,6 @@ def collect_whatsapp_data():
     message_bar = ''
     telephones = []
     base_data = []
-    # dic = {}
 
     # Busqueda de elementos
     for i in range(len(text)):
@@ -511,6 +485,9 @@ if __name__ == "__main__":
 
     while 1:
         whatsapp_data = collect_whatsapp_data()
+        checkspam(pos_msj1, pos_bnt_no_es_spam, reg_new_contact)
+        chkresframe(pos_res_frame)
+
         time.sleep(1)
 
         if whatsapp_data != collect_whatsapp_data():

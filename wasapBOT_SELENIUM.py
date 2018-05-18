@@ -145,7 +145,7 @@ def clearimg(dirpath):
 ###########################################################
 
 
-def escribir(msj):
+def write_with_keyboard(msj):
     print("Escribiendo rta")
     print(msj)
     # pyautogui.click(posTextFrame)
@@ -187,9 +187,7 @@ def copypaste(m):
     pyautogui.hotkey('ctrl', 'v')
 
 
-def generarrespuesta(codigo):
-    rta = "Hola! Gracias por contactarte. En breve te enviamos los datos de la propiedad con el código " + codigo + "."
-    return rta
+
 
 
 def generarrespuesta1(data_prop, codigo):
@@ -238,48 +236,70 @@ def sync(loc):
 ###########################################################
 
 
-def obtenerpropiedades():
+def get_propertys_data():
     with open('%s/schedule.json' % (os.getcwd())) as json_data:
         data = json.load(json_data)
         return data
 
 
 ###########################################################
-def check_if_valid_message_code(data, message):
-    print("Obteniendo ID")
-    message = message.upper()
-    for i in data['schedule']:
-        codigo = i['Cod']
-        if codigo in message:
-            return codigo
+# def check_if_valid_message_code(data, message):
+#     print("Obteniendo CODIGO valido")
+#     message = message.upper()
+#     for i in data['schedule']:
+#         codigo = i['Cod']
+#         if codigo in message:
+#             return codigo
 
 
-def buscarporpropid(data, texto):
-    print("buscando prop segun el texto que ingreso el cliente")
+def get_property_data(data, texto):
+    print("Buscando Prop en el texto que ingreso el cliente")
+
+    operation_type = ''
+    description = ''
+    direction = ''
+    price = ''
+    code = ''
+    prod_nom = ''
+    prod_tel = ''
+
     texto = texto.upper()
-    b = None
+    b = ''
     # Debo encontrar un codigo valido
     for i in data['schedule']:
         codigo = i['Cod']
-        if DBG: print('Codigo Disponible :' + codigo)
-        # difflib.get_close_matches(codigo, texto.split())
+
         if codigo in texto:
             # if propid == i["reference_code"]:
-            print("Prop Encontrada")
-            b = str(i["TipodeOperacion"]) + "\n"
-            b += str(i["Descripcion"]) + "\n"
-            b += "Dirección " + i["Direccion"] + "\n"
-            b += "Precio " + str(i["Precio"]) + "\n"
-
+            if DBG: print('Propiedad encontrada :' + codigo)
+            operation_type = i["TipodeOperacion"]
+            description = i["Descripcion"]
+            direction = i["Direccion"]
+            price = i["Precio"]
+            prod_nom = i['prod_nom']
+            prod_tel = i['prod_tel']
             break
-        else:
-            # rtas = ['prop no encontrada', 'lo siento', 'no la encuentro']
-            # b = random.choice(rtas)
-            b = ''
-    return b
+
+    return {"code" : code, "operation type" : operation_type,
+            "description" : description, "direction" : direction,
+            "price" : price, "prod_nom" : prod_nom, "prod_tel" : prod_tel}
 
 
 ###########################################################
+
+
+def generate_response(prop_data):
+    response = f"Hola! Gracias por contactarte. En breve te enviamos los datos de la propiedad con el código {prop_data['code']} \n"
+    response += f"Tipo de operación: {prop_data['operation_type']} \n"
+    response += f"prop_data['description'] \n"
+    response += f"Dirección: {prop_data['direction']} \n"
+    response += f"Precio: {prop_data['price']} \n"
+    response += f"Si te interesa esta propiedad comunicate con {prod_nom} tel: {prod_tel} \n"
+    response += "¿Te interesa otra propiedad? Pasanos el código \n"
+    return response
+###########################################################
+
+
 
 
 def propimg(data, texto, fotodir):
@@ -343,16 +363,16 @@ def run(force):
             if DBG == 1: print("TEXTO: " + texto)
             if len(texto) > 3:
                 sync(loc)
-                data = obtenerpropiedades()
+                data = get_propertys_data()
                 if data:
                     codigo = check_if_valid_message_code(data, texto)
-                    data_prop = buscarporpropid(data, texto)
+                    data_prop = get_property_data(data, texto)
                     if data_prop:
                         print(data_prop)
-                        respuesta = generarrespuesta(codigo)
-                        escribir(respuesta)
+                        respuesta = generate_response(codigo)
+                        write_with_keyboard(respuesta)
                         respuesta = generarrespuesta1(data_prop, codigo)
-                        escribir(respuesta)
+                        write_with_keyboard(respuesta)
                         if propimg(data, texto, imageFolder):
                             print("Copiando Fotos")
                             copiarimg(posImg0)
@@ -360,7 +380,7 @@ def run(force):
                         time.sleep(4)
                         textoprod = generarfooter(data, texto)
                         if textoprod:
-                            escribir(textoprod)
+                            write_with_keyboard(textoprod)
                         if tel == leernum(posMsj1, regionTelSup):
                             archivarchat()
 
@@ -452,8 +472,11 @@ def write_message(message):
 
 ###########################################################
 
-def parse_contacts(whatsapp_data, data):
+def parse_and_response(whatsapp_data, data):
+    sync(loc)
+
     code = ''
+
     for contact in whatsapp_data:
 
         contact_name = contact['telephone']
@@ -462,22 +485,16 @@ def parse_contacts(whatsapp_data, data):
         print(f"CONTACTO: {contact_name}")
 
         #Checkeo si es valido el codigo que me mandaron.
-        code = check_if_valid_message_code(data, message)
-        if code:
+        # code = check_if_valid_message_code(data, message)
+        prop_data = get_property_data(data, texto)
+
+        if prop_data['code']:
             # CHECKEAR SI YA FUE CONTESTADO UN MSG ASI
             if not check_in_db_if_responded(contact_name, message):
                 #  Comenzamos a responder:
                 write_contact_in_searchbar(contact_name)
-                # Paso las demas funciones manuales para escribir
-                pass
-                # Sub
-
-
-
-
-              # print(f"{contact['telephone']} {contact['telephone']} {contact['message']}")
-
-
+                response = generate_response(prop_data)
+                write_response(response)
 ###########################################################
 
 
@@ -495,10 +512,7 @@ if __name__ == "__main__":
     while 1:
         whatsapp_data = collect_whatsapp_data()
         time.sleep(1)
+
         if whatsapp_data != collect_whatsapp_data():
             print("NEW DATA!")
-            parse_contacts(whatsapp_data)
-
-
-#    find_contact(data[0]['telephone'])
-#    write_message("hola mono")
+            parse_and_response(whatsapp_data)

@@ -64,8 +64,6 @@ def nuevosmensajes(messagesframezone):
         return True
     else:
         return False
-
-
 ###########################################################
 
 
@@ -74,6 +72,7 @@ def leernum(posmsj, reg):
     im = pyscreenshot.grab(bbox=reg)
     text = pytesseract.image_to_string(im, lang='spa')
     return text.upper()
+###########################################################
 
 
 def leermsj(pos, reg):
@@ -88,16 +87,12 @@ def leermsj(pos, reg):
     return text.upper()
     # else:
     #     return ''
-
-
 ###########################################################
 
 
 def guardar(tel):
     # TODO guardar el numero de telefono en la base de datos
     pass
-
-
 ###########################################################
 
 
@@ -110,15 +105,13 @@ def download_photos(url, path):
     img_data = requests.get(url).content
     with open(path + extension, 'wb') as handler:
         handler.write(img_data)
-
-
 ###########################################################
 
 
 def ctrla():
     pyautogui.hotkey('ctrl', 'a')
     time.sleep(0.2)
-
+###########################################################
 
 def copiarimg(regImg):
     print("copiando img")
@@ -131,8 +124,6 @@ def copiarimg(regImg):
     pyautogui.dragTo(pos_text_box[0], pos_text_box[1], 2, button='left')
     time.sleep(8)
     pyautogui.press('enter')
-
-
 ###########################################################
 
 
@@ -140,8 +131,6 @@ def clearimg(dirpath):
     file_list = os.listdir(dirpath)
     for fileName in file_list:
         os.remove(dirpath + "/" + fileName)
-
-
 ###########################################################
 
 
@@ -178,6 +167,7 @@ def write_with_keyboard(msj):
             pyautogui.typewrite(letra)
         #time.sleep(0.05)
     pyautogui.press('enter')
+###########################################################
 
 
 def copypaste(m):
@@ -185,7 +175,7 @@ def copypaste(m):
     pyperclip.copy(m)
     time.sleep(0.2)
     pyautogui.hotkey('ctrl', 'v')
-
+###########################################################
 
 
 def sync(loc):
@@ -204,8 +194,6 @@ def sync(loc):
         return 0
     else:
         return 1
-
-
 ###########################################################
 
 
@@ -213,7 +201,7 @@ def get_propertys_data():
     with open('%s/schedule.json' % (os.getcwd())) as json_data:
         data = json.load(json_data)
         return data
-
+###########################################################
 
 
 
@@ -252,8 +240,6 @@ def get_property_data(data, texto):
     return {"code" : code, "operation type" : operation_type,
             "description" : description, "direction" : direction,
             "price" : price, "prod_nom" : prod_nom, "prod_tel" : prod_tel}
-
-
 ###########################################################
 
 
@@ -284,8 +270,6 @@ def get_property_images(data, texto, fotodir):
                 download_photos(urlimg + fotourl, fotodir + str(p))
             break
     return p
-
-
 ###########################################################
 
 
@@ -294,8 +278,6 @@ def archivarchat():
     time.sleep(0.3)
     pyautogui.moveRel(100, 40)
     pyautogui.click()
-
-
 ###########################################################
 
 
@@ -305,16 +287,11 @@ def checkspam(pos, posbtnspam, reg):
     text = pytesseract.image_to_string(im, lang='spa')
     if text.upper() == 'NO ES SPAM':
         pyautogui.click(posbtnspam)  # Voy a la posicion 1 y clickeo
-
-
 ###########################################################
-
 
 def chkresframe(pos):
     if DBG: print('Fn: chkresframe')
     pyautogui.click(pos)  # Voy a la posicion 1 y clickeo
-
-
 ###########################################################
 
 
@@ -351,8 +328,6 @@ def run(force):
                             write_with_keyboard(textoprod)
                         if tel == leernum(pos_msj1, region_tel_sup):
                             archivarchat()
-
-
 ###########################################################
 
 
@@ -367,8 +342,6 @@ def start_selenium():
     else:
         print('Bye')
         exit(0)
-
-
 ###########################################################
 
 
@@ -411,8 +384,6 @@ def collect_whatsapp_data():
         if (telephone and msg_hour and line) != '':
             base_data.append({"telephone": telephone, "hour": msg_hour, "message": message})
     return base_data
-
-
 ###########################################################
 
 
@@ -424,8 +395,6 @@ def write_contact_in_searchbar(contact_name):
         searchbar[0].send_keys(contact_name)
         time.sleep(0.2)
         searchbar[0].send_keys(Keys.ENTER)
-
-
 ###########################################################
 
 
@@ -434,33 +403,29 @@ def write_message(message):
     message_bar.click()
     time.sleep(0.1)
     message_bar.send_keys(message)
-
-
 ###########################################################
 
 def parse_and_response(whatsapp_data, data):
-    sync(loc)
+    if sync(loc):
 
-    code = ''
+        code = ''
 
-    for contact in whatsapp_data:
+        for contact in whatsapp_data:
 
-        contact_name = contact['telephone']
-        message = contact['message']
+            contact_name = contact['telephone']
+            message = contact['message']
 
-        print(f"CONTACTO: {contact_name}")
+            print(f"CONTACTO: {contact_name}")
 
-        #Checkeo si es valido el codigo que me mandaron.
-        # code = check_if_valid_message_code(data, message)
-        prop_data = get_property_data(data, texto)
+            prop_data = get_property_data(data, texto)
 
-        if prop_data['code']:
-            # CHECKEAR SI YA FUE CONTESTADO UN MSG ASI
-            if not check_in_db_if_responded(contact_name, message):
-                #  Comenzamos a responder:
-                write_contact_in_searchbar(contact_name)
-                response = generate_response(prop_data)
-                write_response(response)
+            if prop_data['code']:
+                # CHECKEAR SI YA FUE CONTESTADO UN MSG ASI
+                if not check_in_db_if_responded(contact_name, message):
+                    #  Comenzamos a responder:
+                    write_contact_in_searchbar(contact_name)
+                    response = generate_response(prop_data)
+                    write_response(response)
 ###########################################################
 
 
@@ -468,8 +433,6 @@ def check_in_db_if_responded(contact_name):
     # QUERY
     # select id, con_name, msg_body from wspbot_msg where con_name=contact_name
     return 0
-
-
 ###########################################################
 
 if __name__ == "__main__":

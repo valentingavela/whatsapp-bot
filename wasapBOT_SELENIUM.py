@@ -215,14 +215,6 @@ def get_propertys_data():
         return data
 
 
-###########################################################
-# def check_if_valid_message_code(data, message):
-#     print("Obteniendo CODIGO valido")
-#     message = message.upper()
-#     for i in data['schedule']:
-#         codigo = i['Cod']
-#         if codigo in message:
-#             return codigo
 
 
 def get_property_data(data, texto):

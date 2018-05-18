@@ -52,51 +52,22 @@ pos_text_box = (1400, 400)  # caja donde se encuentra la conversacion
 scrolling = (-2.1)
 
 
-
-
-def nuevosmensajes(messagesframezone):
-    im1 = pyscreenshot.grab(bbox=messagesframezone)
-    time.sleep(3)
-    im2 = pyscreenshot.grab(bbox=messagesframezone)
-    diff = ImageChops.difference(im1, im2)
-
-    if diff.getbbox():
-        return True
-    else:
-        return False
-###########################################################
-
-
-def leernum(posmsj, reg):
-    pyautogui.click(posmsj)  # Voy a la posicion 1 y clickeo
+def check_spam(pos, posbtnspam, reg):
+    pyautogui.click(pos)  # Voy a la posicion 1 y clickeo
     im = pyscreenshot.grab(bbox=reg)
     text = pytesseract.image_to_string(im, lang='spa')
-    return text.upper()
+    if text.upper() == 'NO ES SPAM':
+        pyautogui.click(posbtnspam)  # Voy a la posicion 1 y clickeo
 ###########################################################
 
 
-def leermsj(pos, reg):
-    if DBG == 1: print('Func. Leer Msj')
-    # im = pyscreenshot.grab(bbox=reg)
-
-    pyautogui.click(x=pos[0], y=pos[1], clicks=3, interval=0.2)
-    time.sleep(0.2)
-    pyautogui.hotkey('ctrl', 'c')
-    text = pyperclip.paste()
-    pyperclip.copy('')
-    return text.upper()
-    # else:
-    #     return ''
+def check_res_frame(pos):
+    if DBG: print('Fn: chkresframe')
+    pyautogui.click(pos)  # Voy a la posicion 1 y clickeo
 ###########################################################
 
 
-def guardar(tel):
-    # TODO guardar el numero de telefono en la base de datos
-    pass
-###########################################################
-
-
-def download_photos(url, path):
+def download_images(url, path):
     print("guardando fotos")
     response = requests.get(url)
     content_type = response.headers['content-type']
@@ -113,7 +84,7 @@ def ctrla():
     time.sleep(0.2)
 ###########################################################
 
-def copiarimg(regImg):
+def copy_images(regImg):
     print("copiando img")
     pyautogui.moveTo(regImg)
     pyautogui.click(regImg)
@@ -127,7 +98,7 @@ def copiarimg(regImg):
 ###########################################################
 
 
-def clearimg(dirpath):
+def remove_images(dirpath):
     file_list = os.listdir(dirpath)
     for fileName in file_list:
         os.remove(dirpath + "/" + fileName)
@@ -234,12 +205,28 @@ def get_property_data(data, texto):
 
             for image in i['images']:
                 image_url = image['url']
-                download_photos(urlimg + fotourl, fotodir + str(p))
+                download_images(urlimg + fotourl, fotodir + str(p))
             break
 
     return {"code" : code, "operation type" : operation_type,
             "description" : description, "direction" : direction,
             "price" : price, "prod_nom" : prod_nom, "prod_tel" : prod_tel}
+###########################################################
+
+
+def get_property_images(data, texto, fotodir):
+    p = 0
+    print("tomando data de fotos")
+    for i in data['schedule']:
+        codigo = i["Cod"]
+        if codigo in texto:
+            for image in i['images']:
+                p += 1
+                fotourl = image['url']
+                print(fotourl)
+                download_images(urlimg + fotourl, fotodir + str(p))
+            break
+    return p
 ###########################################################
 
 
@@ -255,79 +242,11 @@ def generate_response(prop_data):
 ###########################################################
 
 
-
-
-def get_property_images(data, texto, fotodir):
-    p = 0
-    print("tomando data de fotos")
-    for i in data['schedule']:
-        codigo = i["Cod"]
-        if codigo in texto:
-            for image in i['images']:
-                p += 1
-                fotourl = image['url']
-                print(fotourl)
-                download_photos(urlimg + fotourl, fotodir + str(p))
-            break
-    return p
-###########################################################
-
-
-def archivarchat():
+def hide_chat():
     pyautogui.click(pos_msj1, button='right')
     time.sleep(0.3)
     pyautogui.moveRel(100, 40)
     pyautogui.click()
-###########################################################
-
-
-def checkspam(pos, posbtnspam, reg):
-    pyautogui.click(pos)  # Voy a la posicion 1 y clickeo
-    im = pyscreenshot.grab(bbox=reg)
-    text = pytesseract.image_to_string(im, lang='spa')
-    if text.upper() == 'NO ES SPAM':
-        pyautogui.click(posbtnspam)  # Voy a la posicion 1 y clickeo
-###########################################################
-
-def chkresframe(pos):
-    if DBG: print('Fn: chkresframe')
-    pyautogui.click(pos)  # Voy a la posicion 1 y clickeo
-###########################################################
-
-
-def run(force):
-    # TODO corregir el tema de que cuando es cada 5 minutos busca a cada rato
-    if nuevosmensajes(region_messages) or force:
-        print("Nuevo Mensaje")
-        checkspam(pos_msj1, pos_bnt_no_es_spam, reg_new_contact)
-        tel = leernum(pos_msj1, region_tel_sup)  # Leo el numero de telefono
-        chkresframe(pos_res_frame)
-        if tel:
-            print("TEL: " + tel)
-            texto = leermsj(pos_new_text, region_new_text)  # Obtengo el propid del mensaje del remitente
-            if DBG == 1: print("TEXTO: " + texto)
-            if len(texto) > 3:
-                sync(loc)
-                data = get_propertys_data()
-                if data:
-                    codigo = check_if_valid_message_code(data, texto)
-                    data_prop = get_property_data(data, texto)
-                    if data_prop:
-                        print(data_prop)
-                        respuesta = generate_response(codigo)
-                        write_with_keyboard(respuesta)
-                        respuesta = generarrespuesta1(data_prop, codigo)
-                        write_with_keyboard(respuesta)
-                        if get_property_images(data, texto, imageFolder):
-                            print("Copiando Fotos")
-                            copiarimg(pos_img0)
-                            clearimg(imageFolder)
-                        time.sleep(4)
-                        textoprod = generarfooter(data, texto)
-                        if textoprod:
-                            write_with_keyboard(textoprod)
-                        if tel == leernum(pos_msj1, region_tel_sup):
-                            archivarchat()
 ###########################################################
 
 
@@ -345,7 +264,7 @@ def start_selenium():
 ###########################################################
 
 
-def collect_whatsapp_data():
+def get_whatsapp_data():
     # Todo: debuugear por que  message ingresa en blanco
     elements = driver.find_elements_by_tag_name("div")
     text = elements[0].text
@@ -407,18 +326,12 @@ def write_message(message):
 
 def parse_and_response(whatsapp_data, data):
     if sync(loc):
-
         code = ''
-
         for contact in whatsapp_data:
-
             contact_name = contact['telephone']
             message = contact['message']
-
             print(f"CONTACTO: {contact_name}")
-
             prop_data = get_property_data(data, texto)
-
             if prop_data['code']:
                 # CHECKEAR SI YA FUE CONTESTADO UN MSG ASI
                 if not check_in_db_if_responded(contact_name, message):
@@ -439,12 +352,12 @@ if __name__ == "__main__":
     start_selenium()
 
     while 1:
-        whatsapp_data = collect_whatsapp_data()
-        checkspam(pos_msj1, pos_bnt_no_es_spam, reg_new_contact)
-        chkresframe(pos_res_frame)
+        whatsapp_data = get_whatsapp_data()
+        check_spam(pos_msj1, pos_bnt_no_es_spam, reg_new_contact)
+        check_res_frame(pos_res_frame)
 
         time.sleep(1)
 
-        if whatsapp_data != collect_whatsapp_data():
+        if whatsapp_data != get_whatsapp_data():
             print("NEW DATA!")
             parse_and_response(whatsapp_data)

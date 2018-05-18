@@ -470,6 +470,7 @@ def parse_contacts(whatsapp_data, data):
                 write_contact_in_searchbar(contact_name)
                 # Paso las demas funciones manuales para escribir
                 pass
+                # Sub
 
 
 

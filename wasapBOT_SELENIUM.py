@@ -52,6 +52,19 @@ pos_text_box = (1400, 400)  # caja donde se encuentra la conversacion
 scrolling = (-2.1)
 
 
+def check_for_new_messages_graphical(messagesframezone):
+    im1 = pyscreenshot.grab(bbox=messagesframezone)
+    time.sleep(3)
+    im2 = pyscreenshot.grab(bbox=messagesframezone)
+    diff = ImageChops.difference(im1, im2)
+
+    if diff.getbbox():
+        return True
+    else:
+        return False
+###########################################################
+
+
 def check_spam(pos, posbtnspam, reg):
     pyautogui.click(pos)  # Voy a la posicion 1 y clickeo
     im = pyscreenshot.grab(bbox=reg)
@@ -355,9 +368,7 @@ if __name__ == "__main__":
         whatsapp_data = get_whatsapp_data()
         check_spam(pos_msj1, pos_bnt_no_es_spam, reg_new_contact)
         check_res_frame(pos_res_frame)
-
         time.sleep(1)
-
-        if whatsapp_data != get_whatsapp_data():
+        if (whatsapp_data != get_whatsapp_data()) or check_for_new_messages_graphical(region_messages):
             print("NEW DATA!")
             parse_and_response(whatsapp_data)

@@ -182,23 +182,24 @@ def ctrla():
     time.sleep(0.2)
 
 
-def copiarimg(regImg):
+def copy_images(region_image):
     print("copiando img")
-    pyautogui.moveTo(regImg)
-    pyautogui.click(regImg)
+    pyautogui.moveTo(region_image)
+    pyautogui.click(region_image)
     time.sleep(1)
     ctrla()
     # Arrastro las imagenes
-    pyautogui.moveTo(regImg, duration=1)
-    pyautogui.dragTo(posTextBox[0], posTextBox[1], 2, button='left')
-    time.sleep(8)
+    pyautogui.moveTo(region_image, duration=1)
+    pyautogui.dragTo(pos_text_box[0], pos_text_box[1], 2, button='left')
+    time.sleep(3)
     pyautogui.press('enter')
+    time.sleep(1)
 
 
 ###########################################################
 
 
-def clearimg(dirpath):
+def clear_img(dirpath):
     file_list = os.listdir(dirpath)
     for fileName in file_list:
         os.remove(dirpath + "/" + fileName)
@@ -207,11 +208,11 @@ def clearimg(dirpath):
 ###########################################################
 
 
-def escribir(msj):
+def write(msj):
     print("Escribiendo rta")
     print(msj)
     # pyautogui.click(posTextFrame)
-    pyautogui.click(posMsj1)
+    pyautogui.click(pos_msj1)
     time.sleep(0.4)
     for letra in msj:
         if letra == 'ñ':
@@ -239,6 +240,15 @@ def escribir(msj):
         else:
             pyautogui.typewrite(letra)
         #time.sleep(0.05)
+    pyautogui.press('enter')
+
+
+def write_copying(msj):
+    print(msj)
+    pyautogui.click(pos_msj1)
+    time.sleep(0.4)
+    copypaste(msj)
+    time.sleep(0.1)
     pyautogui.press('enter')
 
 
@@ -363,8 +373,8 @@ def get_property_images(data, texto, fotodir):
 ###########################################################
 
 
-def archivarchat():
-    pyautogui.click(posMsj1, button='right')
+def archive_chat():
+    pyautogui.click(pos_msj1, button='right')
     time.sleep(0.3)
     pyautogui.moveRel(100, 40)
     pyautogui.click()
@@ -412,17 +422,17 @@ def run(force):
                     if data_prop:
                         print(data_prop)
                         respuesta = generarrespuesta(codigo)
-                        escribir(respuesta)
+                        write(respuesta)
                         respuesta = generarrespuesta1(data_prop, codigo)
-                        escribir(respuesta)
+                        write(respuesta)
                         if propimg(data, texto, image_folder):
                             print("Copiando Fotos")
-                            copiarimg(posImg0)
-                            clearimg(image_url)
+                            copy_images(posImg0)
+                            clear_img(url_img)
                         time.sleep(4)
                         textoprod = generarfooter(data, texto)
                         if textoprod:
-                            escribir(textoprod)
+                            write(textoprod)
                         if tel == leernum(posMsj1, regionTelSup):
                             archivarchat()
 ###########################################################
@@ -441,11 +451,11 @@ def get_property_data(data, texto):
     b = ''
     # Debo encontrar un codigo valido
     for i in data['schedule']:
-        codigo = i['Cod']
+        code = i['Cod']
 
-        if codigo in texto:
+        if code in texto:
             # if propid == i["reference_code"]:
-            if DBG: print('Propiedad encontrada :' + codigo)
+            if DBG: print('Propiedad encontrada :' + code)
             operation_type = i["TipodeOperacion"]
             description = i["Descripcion"]
             direction = i["Direccion"]
@@ -460,35 +470,54 @@ def get_property_data(data, texto):
                 p += 1
             break
 
-    return {"code" : code, "operation type" : operation_type,
+    return {"code" : code, "operation_type" : operation_type,
             "description" : description, "direction" : direction,
             "price" : price, "prod_nom" : prod_nom, "prod_tel" : prod_tel}
 
 
 ###########################################################
-def generate_response(prop_data):
-    response = f"Hola! Gracias por contactarte. En breve te enviamos los datos de la propiedad con el código {prop_data['code']} \n"
-    response += f"Tipo de operación: {prop_data['operation_type']} \n"
-    response += f"prop_data['description'] \n"
-    response += f"Dirección: {prop_data['direction']} \n"
-    response += f"Precio: {prop_data['price']} \n"
-    response += f"Si te interesa esta propiedad comunicate con {prod_nom} tel: {prod_tel} \n"
-    response += "¿Te interesa otra propiedad? Pasanos el código \n"
-    return response
 
+
+def generate_response(prop_data):
+    response = f"Hola! Gracias por contactarte. En breve te enviamos los datos de la propiedad con el código {prop_data['code']} \n\n"
+    response += f"Tipo de operación: {prop_data['operation_type']} \n\n"
+    if prop_data['description']:
+        response += f"{prop_data['description']} \n\n"
+    response += f"Dirección: {prop_data['direction']} \n\n"
+    response += f"Precio: {prop_data['price']} \n\n"
+    return response
 ###########################################################
+
+
+def generate_greetings(prop_data):
+    response = ''
+    if(prop_data['prod_nom']):
+        response += f"Si te interesa esta propiedad comunicate con {prop_data['prod_nom']} tel: {prop_data['prod_tel']} \n\n"
+    response += "¿Te interesa otra propiedad? Pasanos el código \n\n"
+    return response
+###########################################################
+
 
 def get_data_and_response(message):
     sync(loc)
-    prop_data = get_propertys_data()
-    get_property_data(prop_data, message)
-    if prop_data["code"]:
+    all_props_data = get_propertys_data()
+    prop_data = get_property_data(all_props_data, message)
+    print(prop_data)
+    if prop_data["code"] and prop_data["operation_type"]:
+        print("RESPONSE")
         response = generate_response(prop_data)
-        copypaste(response)
-
-
+        write_copying(response)
+        print("COPY PHOTOS")
+        copy_images(pos_img0)
+        clear_img(image_folder)
+        greetings = generate_greetings(prop_data)
+        write_copying(greetings)
+        write_copying("Que tenga un buen día!")
 ###########################################################
+
+
 def new_work():
+    pyperclip.copy('')
     if check_for_new_messages_graphical(region_messages):
         print("NEW DATA!")
         check_spam(pos_msj1, pos_bnt_no_es_spam, region_new_contact)
@@ -496,6 +525,7 @@ def new_work():
         telephone = read_phone_number(pos_msj1, region_tel_sup)
         if telephone:
             message = read_last_message(pos_new_text, region_new_text)
+            print("MENSAJE" + message)
             ###TODO: messages
             #Deberia checkear todos los mensajes quizas con un crtl+A:
             # messages = read_all_messages()
@@ -503,13 +533,10 @@ def new_work():
             #check_if_message_was_answered(message)
             ###
             get_data_and_response(message)
-
-
-
-
+            if telephone == read_phone_number(pos_msj1, region_tel_sup):
+                archive_chat()
+###########################################################
 if __name__ == "__main__":
-    # test()
     force = 1
     while 1:
-        # run(force)
         new_work()

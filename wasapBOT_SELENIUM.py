@@ -221,7 +221,7 @@ def get_property_data(data, texto):
                 download_images(urlimg + image_url, fotodir + str(p))
             break
 
-    return {"code" : code, "operation type" : operation_type,
+    return {"code" : code, "operation_type" : operation_type,
             "description" : description, "direction" : direction,
             "price" : price, "prod_nom" : prod_nom, "prod_tel" : prod_tel}
 ###########################################################

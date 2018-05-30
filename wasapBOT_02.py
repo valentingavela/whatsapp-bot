@@ -118,9 +118,7 @@ def write_message(message):
 
 
 ###########################################################
-
-
-def nuevosmensajes(messagesframezone):
+def check_for_new_messages_graphical(messagesframezone):
     im1 = pyscreenshot.grab(bbox=messagesframezone)
     time.sleep(3)
     im2 = pyscreenshot.grab(bbox=messagesframezone)
@@ -130,19 +128,17 @@ def nuevosmensajes(messagesframezone):
         return True
     else:
         return False
-
-
 ###########################################################
 
 
-def leernum(posmsj, reg):
+def read_phone_number(posmsj, reg):
     pyautogui.click(posmsj)  # Voy a la posicion 1 y clickeo
     im = pyscreenshot.grab(bbox=reg)
     text = pytesseract.image_to_string(im, lang='spa')
     return text.upper()
 
 
-def leermsj(pos, reg):
+def read_last_message(pos, reg):
     if DBG == 1: print('Func. Leer Msj')
     # im = pyscreenshot.grab(bbox=reg)
 
@@ -159,7 +155,7 @@ def leermsj(pos, reg):
 ###########################################################
 
 
-def guardar(tel):
+def save_telephone(tel):
     # TODO guardar el numero de telefono en la base de datos
     pass
 
@@ -167,7 +163,7 @@ def guardar(tel):
 ###########################################################
 
 
-def guardarfoto(url, path):
+def download_images(url, path):
     print("guardando fotos")
     response = requests.get(url)
     content_type = response.headers['content-type']
@@ -304,7 +300,7 @@ def sync(loc):
 ###########################################################
 
 
-def obtenerpropiedades():
+def get_propertys_data():
     with open('%s/schedule.json' % (os.getcwd())) as json_data:
         data = json.load(json_data)
         return data
@@ -348,7 +344,7 @@ def buscarporpropid(data, texto):
 ###########################################################
 
 
-def propimg(data, texto, fotodir):
+def get_property_images(data, texto, fotodir):
     p = 0
     print("tomando data de fotos")
     for i in data['schedule']:
@@ -409,7 +405,7 @@ def run(force):
             if DBG == 1: print("TEXTO: " + texto)
             if len(texto) > 3:
                 sync(loc)
-                data = obtenerpropiedades()
+                data = get_propertys_data()
                 if data:
                     codigo = obtenerId(data, texto)
                     data_prop = buscarporpropid(data, texto)
@@ -429,16 +425,83 @@ def run(force):
                             escribir(textoprod)
                         if tel == leernum(posMsj1, regionTelSup):
                             archivarchat()
+###########################################################
+def get_property_data(data, texto):
+    print("Buscando Prop en el texto que ingreso el cliente")
+
+    operation_type = ''
+    description = ''
+    direction = ''
+    price = ''
+    code = ''
+    prod_nom = ''
+    prod_tel = ''
+
+    texto = texto.upper()
+    b = ''
+    # Debo encontrar un codigo valido
+    for i in data['schedule']:
+        codigo = i['Cod']
+
+        if codigo in texto:
+            # if propid == i["reference_code"]:
+            if DBG: print('Propiedad encontrada :' + codigo)
+            operation_type = i["TipodeOperacion"]
+            description = i["Descripcion"]
+            direction = i["Direccion"]
+            price = i["Precio"]
+            prod_nom = i['prod_nom']
+            prod_tel = i['prod_tel']
+
+            for image in i['images']:
+                image_url = image['url']
+                download_images(urlimg + fotourl, fotodir + str(p))
+
+            break
+
+    return {"code" : code, "operation type" : operation_type,
+            "description" : description, "direction" : direction,
+            "price" : price, "prod_nom" : prod_nom, "prod_tel" : prod_tel}
 
 
 ###########################################################
+def generate_response(prop_data):
+    response = f"Hola! Gracias por contactarte. En breve te enviamos los datos de la propiedad con el código {prop_data['code']} \n"
+    response += f"Tipo de operación: {prop_data['operation_type']} \n"
+    response += f"prop_data['description'] \n"
+    response += f"Dirección: {prop_data['direction']} \n"
+    response += f"Precio: {prop_data['price']} \n"
+    response += f"Si te interesa esta propiedad comunicate con {prod_nom} tel: {prod_tel} \n"
+    response += "¿Te interesa otra propiedad? Pasanos el código \n"
+    return response
+
+###########################################################
+
+def get_data_and_response(message):
+    sync(loc)
+    prop_data = get_propertys_data()
+    if prop_data['code']:
+        response = generate_response(prop_data)
+        copypaste(response)
 
 
-def test():
-    start()
-    data = collect_data()
-    find_contact(data[0]['telephone'])
-    write_message("hola mono")
+###########################################################
+def new_work():
+    if check_for_new_messages_graphical(region_messages):
+        print("NEW DATA!")
+        check_spam(pos_msj1, pos_bnt_no_es_spam, reg_new_contact)
+        check_res_frame(pos_res_frame)
+        telephone = read_phone_number(pos_msj1, region_tel_sup)
+        if telephone:
+            message = read_last_message(pos_new_text, region_new_text)
+            ###TODO: messages
+            #Deberia checkear todos los mensajes quizas con un crtl+A:
+            # messages = read_all_messages()
+            #Checkear en la base de datos:
+            #check_if_message_was_answered(message)
+            ###
+            get_data_and_response(message)
+
 
 
 
@@ -446,4 +509,5 @@ if __name__ == "__main__":
     # test()
     force = 1
     while 1:
-        run(force)
+        # run(force)
+        new_work()

@@ -29,7 +29,7 @@ loc = 3
 # El ZOOM de la pagina esa en 125%
 ##########
 pyautogui.FAILSAFE = True
-urlimg = 'http://www.benteveo.com/siguit-inmo/images/'
+url_img = 'http://www.benteveo.com/siguit-inmo/images/'
 imageFolder = "/home/wasap/whatsapp-bot/media/"
 
 # COORDENADAS WASAP:
@@ -355,7 +355,7 @@ def get_property_images(data, texto, fotodir):
                 # fotourl = i['photos'][p]['image']
                 fotourl = entry['url']
                 print(fotourl)
-                guardarfoto(urlimg + fotourl, fotodir + str(p))
+                guardarfoto(url_img + fotourl, fotodir + str(p))
             break
     return p
 
@@ -373,7 +373,7 @@ def archivarchat():
 ###########################################################
 
 
-def checkspam(pos, posbtnspam, reg):
+def check_spam(pos, posbtnspam, reg):
     pyautogui.click(pos)  # Voy a la posicion 1 y clickeo
     im = pyscreenshot.grab(bbox=reg)
     text = pytesseract.image_to_string(im, lang='spa')
@@ -384,7 +384,7 @@ def checkspam(pos, posbtnspam, reg):
 ###########################################################
 
 
-def chkresframe(pos):
+def check_res_frame(pos):
     if DBG: print('Fn: chkresframe')
     pyautogui.click(pos)  # Voy a la posicion 1 y clickeo
 
@@ -455,7 +455,7 @@ def get_property_data(data, texto):
 
             for image in i['images']:
                 image_url = image['url']
-                download_images(urlimg + fotourl, fotodir + str(p))
+                download_images(url_img + image_url, fotodir + str(p))
 
             break
 
@@ -480,7 +480,8 @@ def generate_response(prop_data):
 def get_data_and_response(message):
     sync(loc)
     prop_data = get_propertys_data()
-    if prop_data['code']:
+    get_property_data(prop_data, message)
+    if prop_data["code"]:
         response = generate_response(prop_data)
         copypaste(response)
 
@@ -489,7 +490,7 @@ def get_data_and_response(message):
 def new_work():
     if check_for_new_messages_graphical(region_messages):
         print("NEW DATA!")
-        check_spam(pos_msj1, pos_bnt_no_es_spam, reg_new_contact)
+        check_spam(pos_msj1, pos_bnt_no_es_spam, region_new_contact)
         check_res_frame(pos_res_frame)
         telephone = read_phone_number(pos_msj1, region_tel_sup)
         if telephone:

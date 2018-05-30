@@ -218,7 +218,7 @@ def get_property_data(data, texto):
 
             for image in i['images']:
                 image_url = image['url']
-                download_images(urlimg + fotourl, fotodir + str(p))
+                download_images(urlimg + image_url, fotodir + str(p))
             break
 
     return {"code" : code, "operation type" : operation_type,

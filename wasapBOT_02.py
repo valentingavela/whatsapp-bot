@@ -33,26 +33,27 @@ urlimg = 'http://www.benteveo.com/siguit-inmo/images/'
 imageFolder = "/home/wasap/whatsapp-bot/media/"
 
 # COORDENADAS WASAP:
-regionTelSup = (1117, 91, 1308, 125)  # El num de telefono que aparece arriba
-posMsj1 = (854, 392)  # posicion del mensaje nuevo a la izquierda
-posNewText = (1077, 652)  # El ultimo texto que manda el usuario en la zona de conversacion
-regionNewText = (1039, 633, 1547, 679)  # Region donde aparece el ultimo texto
-regionMessages = (660, 361, 1020, 712)  # zona donde estan todos los mensajes recibidos
-regNewContact = (1242, 628, 1385, 660)  # Boton "NO ES SPAM" del cartel de spam
-posBntNoEsSpam = (1321, 646)  # Posicion del boton de "NO ES SPAM"
-regResFrame = (1527, 636, 1580, 677)  # Region donde aparece la X para cerrar un cuadro de respuesta
-posResFrame = (1556, 656)
+pos_msj1 = (854, 392)  # posicion del mensaje nuevo a la izquierda
+pos_new_text = (1077, 652)  # El ultimo texto que manda el usuario en la zona de conversacion
+pos_bnt_no_es_spam = (1321, 646)  # Posicion del boton de "NO ES SPAM"
+pos_res_frame = (1556, 656)
+region_tel_sup = (1117, 91, 1308, 125)  # El num de telefono que aparece arriba
+region_new_text = (1039, 633, 1547, 679)  # Region donde aparece el ultimo texto
+region_messages = (660, 361, 1020, 712)  # zona donde estan todos los mensajes recibidos
+region_new_contact = (1242, 628, 1385, 660)  # Boton "NO ES SPAM" del cartel de spam
+region_res_frame = (1527, 636, 1580, 677)  # Region donde aparece la X para cerrar un cuadro de respuesta
 
 
 # COORDENADAS FILE MANAGER
-posFolder = (262, 113)  # filemanager
-posImg0 = (262, 113)  # Primer imagen en el filemanager
-posTextBox = (1400, 400)  # caja donde se encuentra la conversacion
-
+pos_folder = (262, 113)  # filemanager
+pos_img0 = (262, 113)  # Primer imagen en el filemanager
+pos_text_box = (1400, 400)  # caja donde se encuentra la conversacion
+# SCROLL ENTRE MENSAJES
 scrolling = (-2.1)
 
 
 ###########################################################
+
 
 def collect_data():
     # Todo: debuugear por que  message ingresa en blanco

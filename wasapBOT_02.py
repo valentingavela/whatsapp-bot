@@ -30,7 +30,7 @@ loc = 3
 ##########
 pyautogui.FAILSAFE = True
 url_img = 'http://www.benteveo.com/siguit-inmo/images/'
-imageFolder = "/home/wasap/whatsapp-bot/media/"
+image_folder = "/home/wasap/whatsapp-bot/media/"
 
 # COORDENADAS WASAP:
 pos_msj1 = (854, 392)  # posicion del mensaje nuevo a la izquierda
@@ -415,10 +415,10 @@ def run(force):
                         escribir(respuesta)
                         respuesta = generarrespuesta1(data_prop, codigo)
                         escribir(respuesta)
-                        if propimg(data, texto, imageFolder):
+                        if propimg(data, texto, image_folder):
                             print("Copiando Fotos")
                             copiarimg(posImg0)
-                            clearimg(imageFolder)
+                            clearimg(image_url)
                         time.sleep(4)
                         textoprod = generarfooter(data, texto)
                         if textoprod:
@@ -453,10 +453,11 @@ def get_property_data(data, texto):
             prod_nom = i['prod_nom']
             prod_tel = i['prod_tel']
 
+            p = 0
             for image in i['images']:
                 image_url = image['url']
-                download_images(url_img + image_url, fotodir + str(p))
-
+                download_images(url_img + image_url, image_folder + str(p))
+                p += 1
             break
 
     return {"code" : code, "operation type" : operation_type,

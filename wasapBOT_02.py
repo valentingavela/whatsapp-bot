@@ -555,6 +555,9 @@ def new_work():
                 archive_chat()
 ###########################################################
 
+#todo: checkear si ya conteste los mensajes a tal numero.
+#todo si a tal numero no conteste tal mensaje , mandar mensaje de  "no etiendo"
+
 
 if __name__ == "__main__":
     force = 1
@@ -564,7 +567,7 @@ if __name__ == "__main__":
         if synchronice % 10 == 0:
             sync_images()
             sync(loc)
+        synchronice += 1
 
         new_work()
 
-        synchronice += 1

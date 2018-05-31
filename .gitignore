@@ -1,1 +1,3 @@
 *.pem
+/media/*
+/all_media/*

@@ -205,8 +205,6 @@ def clear_img(dirpath):
     file_list = os.listdir(dirpath)
     for fileName in file_list:
         os.remove(dirpath + "/" + fileName)
-
-
 ###########################################################
 
 
@@ -243,6 +241,7 @@ def write(msj):
             pyautogui.typewrite(letra)
         #time.sleep(0.05)
     pyautogui.press('enter')
+###########################################################
 
 
 def write_copying(msj):
@@ -252,6 +251,7 @@ def write_copying(msj):
     copy_paste(msj)
     time.sleep(0.1)
     pyautogui.press('enter')
+###########################################################
 
 
 def copy_paste(m):
@@ -259,16 +259,19 @@ def copy_paste(m):
     pyperclip.copy(m)
     time.sleep(0.2)
     pyautogui.hotkey('ctrl', 'v')
+###########################################################
 
 
 def generarrespuesta(codigo):
     rta = "Hola! Gracias por contactarte. En breve te enviamos los datos de la propiedad con el código " + codigo + "."
     return rta
+###########################################################
 
 
 def generarrespuesta1(data_prop, codigo):
     rta = data_prop
     return rta
+###########################################################
 
 
 def generarfooter(data, texto):
@@ -289,13 +292,14 @@ def generarfooter(data, texto):
     footer += "¿Te interesa otra propiedad? Pasanos el código"
 
     return footer
+###########################################################
 
 
 def sync(loc):
     #TODO: que sincronize TODAS las propiedades
     if DBG: print('F: Sync')
     command = 'rsync -Pavi -e "ssh -i %s/siguit.pem" --itemize-changes ' \
-              'siguit@benteveo.com:/var/www/html/siguitds/inmobiliarias/schedule/cli-3.json ' % (os.getcwd())
+              'siguit@benteveo.com:/var/www/html/siguitds/inmobiliarias/schedule/all_props.json ' % (os.getcwd())
 
     command += ' '+os.getcwd() + '/schedule.json'
 
@@ -308,6 +312,7 @@ def sync(loc):
         return 0
     else:
         return 1
+###########################################################
 
 
 def sync_images():
@@ -463,7 +468,7 @@ def get_property_data(data, texto):
     code = ''
     prod_nom = ''
     prod_tel = ''
-
+    key = ''
     texto = texto.upper()
     b = ''
     # Debo encontrar un codigo valido
@@ -473,6 +478,7 @@ def get_property_data(data, texto):
         if code in texto:
             # if propid == i["reference_code"]:
             if DBG: print('Propiedad encontrada :' + code)
+            key = i['key']
             operation_type = i["TipodeOperacion"]
             description = i["Descripcion"]
             direction = i["Direccion"]
@@ -489,7 +495,7 @@ def get_property_data(data, texto):
                 p += 1
             break
 
-    return {"code" : code, "operation_type" : operation_type,
+    return {"key" : key, "code" : code, "operation_type" : operation_type,
             "description" : description, "direction" : direction,
             "price" : price, "prod_nom" : prod_nom, "prod_tel" : prod_tel}
 
@@ -516,16 +522,17 @@ def generate_greetings(prop_data):
     return response
 
 
-def send_contact(key):
+def send_contact(key, cellphone, message):
     # url = "https://www.tokkobroker.com/api/v1/webcontact/?key=c6b7f558fb879c9dcbec357d28fc0c564a443108"
     url = f"https://www.tokkobroker.com/api/v1/webcontact/?key={key}"
-    payload={"name": "valentin", "tag": "bot", "cellphone" : "123213213"}
+    msg = f"Han enviado el siguiente mensaje: {message}"
+    payload={"name": cellphone, "tag": "bot", "cellphone" : cellphone, "text" : msg}
     headers = {'Content-Type': 'application/json'}
     r = requests.post(url, data=json.dumps(payload), headers=headers)
     print(r.status_code, r.reason)
 
 ###########################################################
-def get_data_and_response(message):
+def get_data_and_response(message, telephone):
     all_props_data = get_propertys_data()
     prop_data = get_property_data(all_props_data, message)
     print(prop_data)
@@ -540,7 +547,7 @@ def get_data_and_response(message):
         greetings = generate_greetings(prop_data)
         write_copying(greetings)
         write_copying("¿Te interesa otra propiedad? Pasanos el código")
-        send_contact()
+        send_contact(prop_data['key'], telephone, message)
 ###########################################################
 
 
@@ -560,7 +567,7 @@ def new_work():
             #Checkear en la base de datos:
             #check_if_message_was_answered(message)
             ###
-            get_data_and_response(message)
+            get_data_and_response(message, telephone)
             if telephone == read_phone_number(pos_msj1, region_tel_sup):
                 archive_chat()
 ###########################################################
@@ -572,6 +579,9 @@ def new_work():
 if __name__ == "__main__":
     force = 1
     synchronice = 1
+
+    sync_images()
+    sync(loc)
 
     while 1:
         if synchronice % 10 == 0:

@@ -309,8 +309,6 @@ def sync(loc):
 
 
 def sync_images():
-    #TODO: el en synchro del server, cuando se guardan las imagenes ponerles
-    # chmod +x -R /var/www/html/siguitds/inmobiliarias/images/
     if DBG: print('F: Sync Images')
     command = f'rsync -e "ssh -i {os.getcwd()}/siguit.pem" -r' \
               f' siguit@benteveo.com:/var/www/html/siguitds/inmobiliarias/images/ {os.getcwd()}/all_media'

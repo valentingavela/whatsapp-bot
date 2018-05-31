@@ -11,9 +11,11 @@ import pyscreenshot
 import pytesseract
 import requests
 import difflib
-from selenium import webdriver
-from selenium.webdriver.common.keys import Keys
-from selenium.webdriver.common.by import By
+import requests
+
+# from selenium import webdriver
+# from selenium.webdriver.common.keys import Keys
+# from selenium.webdriver.common.by import By
 
 from PIL import ImageChops
 from datetime import datetime
@@ -510,11 +512,19 @@ def generate_greetings(prop_data):
     response = ''
     if(prop_data['prod_nom']):
         response += f"Si te interesa esta propiedad comunicate con {prop_data['prod_nom']} tel: {prop_data['prod_tel']} \n\n"
-    response += "¿Te interesa otra propiedad? Pasanos el código \n\n"
+    # response += "¿Te interesa otra propiedad? Pasanos el código \n\n"
     return response
+
+
+def send_contact(key):
+    # url = "https://www.tokkobroker.com/api/v1/webcontact/?key=c6b7f558fb879c9dcbec357d28fc0c564a443108"
+    url = f"https://www.tokkobroker.com/api/v1/webcontact/?key={key}"
+    payload={"name": "valentin", "tag": "bot", "cellphone" : "123213213"}
+    headers = {'Content-Type': 'application/json'}
+    r = requests.post(url, data=json.dumps(payload), headers=headers)
+    print(r.status_code, r.reason)
+
 ###########################################################
-
-
 def get_data_and_response(message):
     all_props_data = get_propertys_data()
     prop_data = get_property_data(all_props_data, message)
@@ -526,9 +536,11 @@ def get_data_and_response(message):
         print("COPY PHOTOS")
         copy_images(pos_img0)
         clear_img(image_folder)
+        time.sleep(4)
         greetings = generate_greetings(prop_data)
         write_copying(greetings)
-        write_copying("Que tenga un buen día!")
+        write_copying("¿Te interesa otra propiedad? Pasanos el código")
+        send_contact()
 ###########################################################
 
 

@@ -177,7 +177,7 @@ def download_images(url, path):
 ###########################################################
 
 
-def ctrla():
+def ctrl_a():
     pyautogui.hotkey('ctrl', 'a')
     time.sleep(0.2)
 
@@ -187,7 +187,7 @@ def copy_images(region_image):
     pyautogui.moveTo(region_image)
     pyautogui.click(region_image)
     time.sleep(1)
-    ctrla()
+    ctrl_a()
     # Arrastro las imagenes
     pyautogui.moveTo(region_image, duration=1)
     pyautogui.dragTo(pos_text_box[0], pos_text_box[1], 2, button='left')
@@ -216,27 +216,27 @@ def write(msj):
     time.sleep(0.4)
     for letra in msj:
         if letra == 'ñ':
-            copypaste('ñ')
+            copy_paste('ñ')
         elif letra == 'á':
-            copypaste('á')
+            copy_paste('á')
         elif letra == 'é':
-            copypaste('é')
+            copy_paste('é')
         elif letra == 'í':
-            copypaste('í')
+            copy_paste('í')
         elif letra == 'ó':
-            copypaste('ó')
+            copy_paste('ó')
         elif letra == 'ú':
-            copypaste('ú')
+            copy_paste('ú')
         elif letra == 'ü':
-            copypaste('ü')
+            copy_paste('ü')
         elif letra == ':':
-            copypaste(':')
+            copy_paste(':')
         elif letra == '/':
-            copypaste('/')
+            copy_paste('/')
         elif letra == '¿':
-            copypaste('¿')
+            copy_paste('¿')
         elif letra == '?':
-            copypaste('?')
+            copy_paste('?')
         else:
             pyautogui.typewrite(letra)
         #time.sleep(0.05)
@@ -247,12 +247,12 @@ def write_copying(msj):
     print(msj)
     pyautogui.click(pos_msj1)
     time.sleep(0.4)
-    copypaste(msj)
+    copy_paste(msj)
     time.sleep(0.1)
     pyautogui.press('enter')
 
 
-def copypaste(m):
+def copy_paste(m):
     if DBG: print('F: Copypaste')
     pyperclip.copy(m)
     time.sleep(0.2)
@@ -290,6 +290,7 @@ def generarfooter(data, texto):
 
 
 def sync(loc):
+    #TODO: que sincronize TODAS las propiedades
     if DBG: print('F: Sync')
     command = 'rsync -Pavi -e "ssh -i %s/siguit.pem" --itemize-changes ' \
               'siguit@benteveo.com:/var/www/html/siguitds/inmobiliarias/schedule/cli-3.json ' % (os.getcwd())
@@ -307,6 +308,22 @@ def sync(loc):
         return 1
 
 
+def sync_images():
+    #TODO: el en synchro del server, cuando se guardan las imagenes ponerles
+    # chmod +x -R /var/www/html/siguitds/inmobiliarias/images/
+    if DBG: print('F: Sync Images')
+    command = f'rsync -e "ssh -i {os.getcwd()}/siguit.pem" -r' \
+              f' siguit@benteveo.com:/var/www/html/siguitds/inmobiliarias/images/ {os.getcwd()}/all_media'
+
+    output, error = subprocess.Popen(
+        command, universal_newlines=True, shell=True,
+        stdout=subprocess.PIPE, stderr=subprocess.PIPE).communicate()
+    if DBG: print(error)
+    if DBG: print(output)
+    if ".f" in output:
+        return 0
+    else:
+        return 1
 ###########################################################
 
 
@@ -465,8 +482,10 @@ def get_property_data(data, texto):
 
             p = 0
             for image in i['images']:
-                image_url = image['url']
-                download_images(url_img + image_url, image_folder + str(p))
+                image_name = image['url']
+                # download_images(url_img + image_name, image_folder + str(p))
+                print("Copiando imagenes")
+                subprocess.call(["cp", f"{os.getcwd()}/all_media/{image_name}", f"{os.getcwd()}/media/{image_name}"])
                 p += 1
             break
 
@@ -499,7 +518,6 @@ def generate_greetings(prop_data):
 
 
 def get_data_and_response(message):
-    sync(loc)
     all_props_data = get_propertys_data()
     prop_data = get_property_data(all_props_data, message)
     print(prop_data)
@@ -536,7 +554,17 @@ def new_work():
             if telephone == read_phone_number(pos_msj1, region_tel_sup):
                 archive_chat()
 ###########################################################
+
+
 if __name__ == "__main__":
     force = 1
+    synchronice = 1
+
     while 1:
+        if synchronice % 10 == 0:
+            sync_images()
+            sync(loc)
+
         new_work()
+
+        synchronice += 1

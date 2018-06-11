@@ -12,6 +12,7 @@ import pytesseract
 import requests
 import difflib
 import requests
+import sqlite3
 
 # from selenium import webdriver
 # from selenium.webdriver.common.keys import Keys
@@ -522,6 +523,18 @@ def generate_greetings(prop_data):
     return response
 
 
+
+def generate_greetings_failed(telephone='1158717399'):
+    response = f"Podemos responderte via Whatsapp sobre nuestras propiedades ofertadas. \
+    Para cualquier otra consulta te recomiendo comunicarte con la Inmobiliaria al teléfono \
+    {telephone} Si querés consultar sobre alguna propiedad en particular, pasanos su código."
+    return response
+
+
+
+###########################################################
+
+
 def send_contact(key, cellphone, message):
     # url = "https://www.tokkobroker.com/api/v1/webcontact/?key=c6b7f558fb879c9dcbec357d28fc0c564a443108"
     url = f"https://www.tokkobroker.com/api/v1/webcontact/?key={key}"
@@ -530,9 +543,38 @@ def send_contact(key, cellphone, message):
     headers = {'Content-Type': 'application/json'}
     r = requests.post(url, data=json.dumps(payload), headers=headers)
     print(r.status_code, r.reason)
-
 ###########################################################
+
+
+def check_if_message_was_answered(message, telephone):
+    print("DEBUG: check_if_message_was_answered")
+
+    sql_select = '''SELECT id FROM conversations WHERE phone = ? and message = ? and (status = 1 or status = 2 )'''
+    cursor.execute(sql_select, (telephone, message))
+    try:
+        result = cursor.fetchone()[0]
+    except TypeError:
+        result = 0
+
+    if result >= 1:
+        print("DEBUG: message ALREADY responded")
+        return 1
+    else:
+        print("DEBUG: message NOT responded")
+        return 0
+###########################################################
+
+
 def get_data_and_response(message, telephone):
+    status = 1
+
+    sql_insert = '''INSERT INTO conversations(phone, message, status)
+                          VALUES(?,?,?)'''
+
+    sql_select = '''SELECT id FROM conversations WHERE phone = ? and message = ? and status = ?'''
+
+    sql_update = '''UPDATE conversations SET status WHERE id = ?'''
+
     all_props_data = get_propertys_data()
     prop_data = get_property_data(all_props_data, message)
     print(prop_data)
@@ -548,16 +590,30 @@ def get_data_and_response(message, telephone):
         write_copying(greetings)
         write_copying("¿Te interesa otra propiedad? Pasanos el código")
         send_contact(prop_data['key'], telephone, message)
+        #--DB
+        cursor.execute(sql_insert, (telephone, message, status))
+        #--
+    else:
+        status = 2 # No se entiende el mensaje
+    #     if not ('PODEMOS' in message and 'RESPONDERTE' in message):
+        greetings = generate_greetings_failed()
+        write_copying(greetings)
+        #--DB
+        cursor.execute(sql_insert, (telephone, message, status))
+        #--DB
+    db.commit()
+        #--
 ###########################################################
 
 
-def new_work():
+def new_work(force):
     pyperclip.copy('')
-    if check_for_new_messages_graphical(region_messages):
-        print("NEW DATA!")
+    if check_for_new_messages_graphical(region_messages) or force:
+        print("New messages or forcing new messags")
         check_spam(pos_msj1, pos_bnt_no_es_spam, region_new_contact)
         check_res_frame(pos_res_frame)
         telephone = read_phone_number(pos_msj1, region_tel_sup)
+
         if telephone:
             message = read_last_message(pos_new_text, region_new_text)
             print("MENSAJE" + message)
@@ -565,15 +621,14 @@ def new_work():
             #Deberia checkear todos los mensajes quizas con un crtl+A:
             # messages = read_all_messages()
             #Checkear en la base de datos:
-            #check_if_message_was_answered(message)
-            ###
-            get_data_and_response(message, telephone)
-            if telephone == read_phone_number(pos_msj1, region_tel_sup):
-                archive_chat()
+            if not check_if_message_was_answered(message, telephone):
+                get_data_and_response(message, telephone)
+            # if telephone == read_phone_number(pos_msj1, region_tel_sup):
+            #     archive_chat()
 ###########################################################
 
-#todo: checkear si ya conteste los mensajes a tal numero.
-#todo si a tal numero no conteste tal mensaje , mandar mensaje de  "no etiendo"
+# todo: checkear si ya conteste los mensajes a tal numero.
+# todo si a tal numero no conteste tal mensaje , mandar mensaje de  "no etiendo"
 
 
 if __name__ == "__main__":
@@ -583,11 +638,47 @@ if __name__ == "__main__":
     sync_images()
     sync(loc)
 
+    #--DB
+    db = sqlite3.connect('db_conversations')
+    cursor = db.cursor()
+    cursor.execute('''
+        CREATE TABLE IF NOT EXISTS conversations(id INTEGER PRIMARY KEY,
+        phone TEXT,
+        message TEXT,
+        status INTEGER)
+    ''')
+    db.commit()
+
+    #--
+
     while 1:
         if synchronice % 10 == 0:
             sync_images()
             sync(loc)
         synchronice += 1
 
-        new_work()
+        new_work(force)
 
+
+#DB EXAMPLE
+# import sqlite3
+# db = sqlite3.connect('db_conversations')
+# cursor = db.cursor()
+# cursor.execute('''
+#     CREATE TABLE conversations(id INTEGER PRIMARY KEY,
+#     phone TEXT,
+#     message TEXT,
+#     status INTEGER)
+# ''')
+# db.commit()
+# #--
+#
+# phone = "32132132133"
+# message = "pepepe"
+# status = 1
+# cursor.execute('''INSERT INTO conversations(phone, message, status)
+#                   VALUES(?,?,?)''', (phone, message, status))
+#
+# cursor.execute('''SELECT * FROM conversations''')
+#
+# db.commit()

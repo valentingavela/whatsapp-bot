@@ -329,6 +329,7 @@ def sync_images():
     if ".f" in output:
         return 0
     else:
+        subprocess.call(['python3', '/home/wasap/whatsapp-bot/thumbnailer.py'])
         return 1
 ###########################################################
 
@@ -489,10 +490,10 @@ def get_property_data(data, texto):
 
             p = 0
             for image in i['images']:
-                image_name = image['url']
+                image_name = 'T_' + image['url']
                 # download_images(url_img + image_name, image_folder + str(p))
                 print("Copiando imagenes")
-                subprocess.call(["cp", f"{os.getcwd()}/all_media/{image_name}", f"{os.getcwd()}/media/{image_name}"])
+                subprocess.call(["cp", f"{os.getcwd()}/all_media/thumbs/{image_name}", f"{os.getcwd()}/media/{image_name}"])
                 p += 1
             break
 
@@ -623,8 +624,8 @@ def new_work(force):
             #Checkear en la base de datos:
             if not check_if_message_was_answered(message, telephone):
                 get_data_and_response(message, telephone)
-            # if telephone == read_phone_number(pos_msj1, region_tel_sup):
-            #     archive_chat()
+            if telephone == read_phone_number(pos_msj1, region_tel_sup):
+                archive_chat()
 ###########################################################
 
 # todo: checkear si ya conteste los mensajes a tal numero.
@@ -652,7 +653,7 @@ if __name__ == "__main__":
     #--
 
     while 1:
-        if synchronice % 10 == 0:
+        if synchronice % 30 == 0:
             sync_images()
             sync(loc)
         synchronice += 1

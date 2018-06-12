@@ -213,7 +213,7 @@ def write(msj):
     print("Escribiendo rta")
     print(msj)
     # pyautogui.click(posTextFrame)
-    pyautogui.click(pos_msj1)
+    #pyautogui.click(pos_msj1)
     time.sleep(0.4)
     for letra in msj:
         if letra == 'ñ':
@@ -624,6 +624,7 @@ def new_work(force):
             #Checkear en la base de datos:
             if not check_if_message_was_answered(message, telephone):
                 get_data_and_response(message, telephone)
+                time.sleep(2)
             if telephone == read_phone_number(pos_msj1, region_tel_sup):
                 archive_chat()
 ###########################################################

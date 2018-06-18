@@ -36,11 +36,15 @@ url_img = 'http://www.benteveo.com/siguit-inmo/images/'
 image_folder = "/home/wasap/whatsapp-bot/media/"
 
 # COORDENADAS WASAP:
-pos_msj1 = (854, 392)  # posicion del mensaje nuevo a la izquierda
+pos_search_contact = (861,322) # Buscar o empezar un chat nuevo
+pos_close_search_contact = (1004,320)
+pos_tel_1 = (854, 392)  # posicion del mensaje nuevo a la izquierda
+pos_tel_1_searched = (854, 468)  # posicion del mensaje nuevo a la izquierda
 pos_new_text = (1077, 652)  # El ultimo texto que manda el usuario en la zona de conversacion
 pos_bnt_no_es_spam = (1321, 646)  # Posicion del boton de "NO ES SPAM"
 pos_res_frame = (1556, 656)
-region_tel_sup = (1117, 91, 1308, 125)  # El num de telefono que aparece arriba
+region_tel_1 = (1117, 91, 1308, 125)  # El num de telefono que aparece arriba
+region_tel_1_searched = (749, 454, 956, 491)  # El num de telefono que aparece arriba
 region_new_text = (1039, 633, 1547, 679)  # Region donde aparece el ultimo texto
 region_messages = (660, 361, 1020, 712)  # zona donde estan todos los mensajes recibidos
 region_new_contact = (1242, 628, 1385, 660)  # Boton "NO ES SPAM" del cartel de spam
@@ -245,13 +249,14 @@ def write(msj):
 ###########################################################
 
 
-def write_copying(msj):
+def write_copying(msj, pos, enter=0):
     print(msj)
-    pyautogui.click(pos_msj1)
+    pyautogui.click(pos)
     time.sleep(0.4)
     copy_paste(msj)
     time.sleep(0.1)
-    pyautogui.press('enter')
+    if enter:
+        pyautogui.press('enter')
 ###########################################################
 
 
@@ -397,8 +402,8 @@ def get_property_images(data, texto, fotodir):
 ###########################################################
 
 
-def archive_chat():
-    pyautogui.click(pos_msj1, button='right')
+def archive_chat(pos):
+    pyautogui.click(pos, button='right')
     time.sleep(0.3)
     pyautogui.moveRel(100, 40)
     pyautogui.click()
@@ -426,39 +431,43 @@ def check_res_frame(pos):
 ###########################################################
 
 
-def run(force):
-    # TODO corregir el tema de que cuando es cada 5 minutos busca a cada rato
-    if nuevosmensajes(regionMessages) or force:
-        print("Nuevo Mensaje")
-        checkspam(posMsj1, posBntNoEsSpam, regNewContact)
-        tel = leernum(posMsj1, regionTelSup)  # Leo el numero de telefono
-        chkresframe(posResFrame)
-        if tel:
-            print("TEL: " + tel)
-            texto = leermsj(posNewText, regionNewText)  # Obtengo el propid del mensaje del remitente
-            if DBG == 1: print("TEXTO: " + texto)
-            if len(texto) > 3:
-                sync(loc)
-                data = get_propertys_data()
-                if data:
-                    codigo = obtenerId(data, texto)
-                    data_prop = buscarporpropid(data, texto)
-                    if data_prop:
-                        print(data_prop)
-                        respuesta = generarrespuesta(codigo)
-                        write(respuesta)
-                        respuesta = generarrespuesta1(data_prop, codigo)
-                        write(respuesta)
-                        if propimg(data, texto, image_folder):
-                            print("Copiando Fotos")
-                            copy_images(posImg0)
-                            clear_img(url_img)
-                        time.sleep(4)
-                        textoprod = generarfooter(data, texto)
-                        if textoprod:
-                            write(textoprod)
-                        if tel == leernum(posMsj1, regionTelSup):
-                            archivarchat()
+def write_telephone_in_searchbar(pos_search_contact, telephone):
+    write_copying(telephone, pos_search_contact)
+
+#
+# def run(force):
+#     # TODO corregir el tema de que cuando es cada 5 minutos busca a cada rato
+#     if nuevosmensajes(regionMessages) or force:
+#         print("Nuevo Mensaje")
+#         checkspam(posMsj1, posBntNoEsSpam, regNewContact)
+#         tel = leernum(posMsj1, regionTelSup)  # Leo el numero de telefono
+#         chkresframe(posResFrame)
+#         if tel:
+#             print("TEL: " + tel)
+#             texto = leermsj(posNewText, regionNewText)  # Obtengo el propid del mensaje del remitente
+#             if DBG == 1: print("TEXTO: " + texto)
+#             if len(texto) > 3:
+#                 sync(loc)
+#                 data = get_propertys_data()
+#                 if data:
+#                     codigo = obtenerId(data, texto)
+#                     data_prop = buscarporpropid(data, texto)
+#                     if data_prop:
+#                         print(data_prop)
+#                         respuesta = generarrespuesta(codigo)
+#                         write(respuesta)
+#                         respuesta = generarrespuesta1(data_prop, codigo)
+#                         write(respuesta)
+#                         if propimg(data, texto, image_folder):
+#                             print("Copiando Fotos")
+#                             copy_images(posImg0)
+#                             clear_img(url_img)
+#                         time.sleep(4)
+#                         textoprod = generarfooter(data, texto)
+#                         if textoprod:
+#                             write(textoprod)
+#                         if tel == leernum(posMsj1, regionTelSup):
+#                             archivarchat()
 ###########################################################
 def get_property_data(data, texto):
     print("Buscando Prop en el texto que ingreso el cliente")
@@ -582,23 +591,23 @@ def get_data_and_response(message, telephone):
     if prop_data["code"] and prop_data["operation_type"]:
         print("RESPONSE")
         response = generate_response(prop_data)
-        write_copying(response)
+        write_copying(response, pos_tel_1, 1)
         print("COPY PHOTOS")
         copy_images(pos_img0)
         clear_img(image_folder)
         time.sleep(4)
         greetings = generate_greetings(prop_data)
-        write_copying(greetings)
-        write_copying("¿Te interesa otra propiedad? Pasanos el código")
+        write_copying(greetings, pos_tel_1 ,1)
+        write_copying("¿Te interesa otra propiedad? Pasanos el código", pos_tel_1, 1)
         send_contact(prop_data['key'], telephone, message)
         #--DB
         cursor.execute(sql_insert, (telephone, message, status))
         #--
     else:
-        status = 2 # No se entiende el mensaje
+        status = 2 # No se entiende el mensaje|
     #     if not ('PODEMOS' in message and 'RESPONDERTE' in message):
         greetings = generate_greetings_failed()
-        write_copying(greetings)
+        write_copying(greetings, pos_tel_1, 1)
         #--DB
         cursor.execute(sql_insert, (telephone, message, status))
         #--DB
@@ -611,22 +620,24 @@ def new_work(force):
     pyperclip.copy('')
     if check_for_new_messages_graphical(region_messages) or force:
         print("New messages or forcing new messags")
-        check_spam(pos_msj1, pos_bnt_no_es_spam, region_new_contact)
+        check_spam(pos_tel_1, pos_bnt_no_es_spam, region_new_contact)
         check_res_frame(pos_res_frame)
-        telephone = read_phone_number(pos_msj1, region_tel_sup)
+        telephone = read_phone_number(pos_tel_1, region_tel_1)
 
         if telephone:
+            write_telephone_in_searchbar(pos_search_contact, telephone)
             message = read_last_message(pos_new_text, region_new_text)
             print("MENSAJE" + message)
-            ###TODO: messages
-            #Deberia checkear todos los mensajes quizas con un crtl+A:
-            # messages = read_all_messages()
             #Checkear en la base de datos:
             if not check_if_message_was_answered(message, telephone):
                 get_data_and_response(message, telephone)
-                time.sleep(2)
-            if telephone == read_phone_number(pos_msj1, region_tel_sup):
-                archive_chat()
+
+            time.sleep(2)
+            pyautogui.click(pos_close_search_contact)  # Close searchbar
+            archive_chat(pos_tel_1_searched)
+
+            # if telephone == read_phone_number(pos_msj1, region_tel_sup):
+                # archive_chat(pos_tel_1)
 ###########################################################
 
 # todo: checkear si ya conteste los mensajes a tal numero.

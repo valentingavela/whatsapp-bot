@@ -269,7 +269,7 @@ def copy_paste(m):
 
 
 def generarrespuesta(codigo):
-    rta = "Hola! Gracias por contactarte. En breve te enviamos los datos de la propiedad con el código " + codigo + "."
+    rta = "Hola! Gracias por contactarte. Te enviamos los datos de la propiedad con el código " + codigo + "."
     return rta
 ###########################################################
 

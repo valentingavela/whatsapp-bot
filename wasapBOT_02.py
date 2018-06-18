@@ -433,42 +433,9 @@ def check_res_frame(pos):
 
 def write_telephone_in_searchbar(pos_search_contact, telephone):
     write_copying(telephone, pos_search_contact)
-
-#
-# def run(force):
-#     # TODO corregir el tema de que cuando es cada 5 minutos busca a cada rato
-#     if nuevosmensajes(regionMessages) or force:
-#         print("Nuevo Mensaje")
-#         checkspam(posMsj1, posBntNoEsSpam, regNewContact)
-#         tel = leernum(posMsj1, regionTelSup)  # Leo el numero de telefono
-#         chkresframe(posResFrame)
-#         if tel:
-#             print("TEL: " + tel)
-#             texto = leermsj(posNewText, regionNewText)  # Obtengo el propid del mensaje del remitente
-#             if DBG == 1: print("TEXTO: " + texto)
-#             if len(texto) > 3:
-#                 sync(loc)
-#                 data = get_propertys_data()
-#                 if data:
-#                     codigo = obtenerId(data, texto)
-#                     data_prop = buscarporpropid(data, texto)
-#                     if data_prop:
-#                         print(data_prop)
-#                         respuesta = generarrespuesta(codigo)
-#                         write(respuesta)
-#                         respuesta = generarrespuesta1(data_prop, codigo)
-#                         write(respuesta)
-#                         if propimg(data, texto, image_folder):
-#                             print("Copiando Fotos")
-#                             copy_images(posImg0)
-#                             clear_img(url_img)
-#                         time.sleep(4)
-#                         textoprod = generarfooter(data, texto)
-#                         if textoprod:
-#                             write(textoprod)
-#                         if tel == leernum(posMsj1, regionTelSup):
-#                             archivarchat()
 ###########################################################
+
+
 def get_property_data(data, texto):
     print("Buscando Prop en el texto que ingreso el cliente")
 
@@ -633,8 +600,8 @@ def new_work(force):
                 get_data_and_response(message, telephone)
 
             time.sleep(2)
-            pyautogui.click(pos_close_search_contact)  # Close searchbar
             archive_chat(pos_tel_1_searched)
+            pyautogui.click(pos_close_search_contact)  # Close searchbar
 
             # if telephone == read_phone_number(pos_msj1, region_tel_sup):
                 # archive_chat(pos_tel_1)
@@ -695,3 +662,5 @@ if __name__ == "__main__":
 # cursor.execute('''SELECT * FROM conversations''')
 #
 # db.commit()
+
+
